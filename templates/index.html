@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
+  <title>Amazon Sentient Analysis</title>
+</head>
+
+<body>
+  <div class="center">
+    <h1>Amazon Sentiment Analysis</h1>
+    <form id="myForm">
+      <div class="inputbox">
+        <input type="text" required="required">
+        <span>Title</span>
+      </div>
+      <div class="inputbox">
+        <input type="text" required="required">
+        <span>Text</span>
+      </div>
+      <div class="inputbox">
+        <input type="button" value="submit" id="submit">
+      </div>
+    </form>
+    <div id="answer">
+      <h6 id="sentiment"></h6>
+    </div>
+  </div>
+  <script>
+    document.getElementById("submit").addEventListener("click", function (event) {
+      event.preventDefault(); // Prevent default form submission
+
+      // Get form data (if applicable)
+      const name = document.querySelectorAll("input");
+      const title = name[0].value
+      const text = name[1].value
+      const url = window.location.href
+      console.log(`${title} _ ${text} _ ${url}`)
+      // Send AJAX request to your Python function
+      fetch(`${url}predict`, {
+        method: "POST",
+        body: JSON.stringify({ title: title, text: text }), // Send data if needed
+        headers: { // Set headers (optional)
+          "Content-Type": "application/json" // Specify JSON content type
+        }
+      })
+        .then(response => response.json())
+        .then(data => {
+          const answer = document.getElementById('answer');
+          answer.style.display = 'block';
+          const senti = document.getElementById('sentiment');
+          senti.style.display = 'block';
+          document.getElementById("sentiment").innerHTML = `This comment is ${data.answer}`;
+        })
+        .catch(error => console.error(error));
+    });
+  </script>
+</body>
+
+</html>
