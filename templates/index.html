@@ -1,62 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
-  <title>Amazon Sentient Analysis</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Reviews Sentiment Analysis</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom styles -->
+    <link href="{{url_for('static', filename='style.css')}}" rel="stylesheet">
 </head>
-
 <body>
-  <div class="center">
-    <h1>Amazon Sentiment Analysis</h1>
-    <form id="myForm">
-      <div class="inputbox">
-        <input type="text" required="required">
-        <span>Title</span>
-      </div>
-      <div class="inputbox">
-        <input type="text" required="required">
-        <span>Text</span>
-      </div>
-      <div class="inputbox">
-        <input type="button" value="submit" id="submit">
-      </div>
-    </form>
-    <div id="answer">
-      <h6 id="sentiment"></h6>
-    </div>
-  </div>
-  <script>
-    document.getElementById("submit").addEventListener("click", function (event) {
-      event.preventDefault(); // Prevent default form submission
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">Amazon Sentiment Analysis</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        {% if current_user.is_authenticated %}
+        <a class="navbar-brand" href="#">Welcome {{ current_user.username }}!</a>
+        {% endif %}
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{url_for('home')}}">Home <span class="sr-only">(current)</span></a>
+                </li>
+                {% if current_user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{url_for('dashboard')}}">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{url_for('logout')}}">Logout</a>
+                </li>
+                {% else%}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{url_for('login')}}">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{url_for('signin')}}">Sign Up</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+</header>
+    
+    <main role="main" class="container">
+        <div class="jumbotron mt-5">
+            <h1 class="display-4">Welcome to Amazon Reviews Sentiment Analysis!</h1>
+            <p class="lead">Discover the sentiment of Amazon reviews quickly and easily.</p>
+        </div>
+    </main>
 
-      // Get form data (if applicable)
-      const name = document.querySelectorAll("input");
-      const title = name[0].value
-      const text = name[1].value
-      const url = window.location.href
-      console.log(`${title} _ ${text} _ ${url}`)
-      // Send AJAX request to your Python function
-      fetch(`${url}predict`, {
-        method: "POST",
-        body: JSON.stringify({ title: title, text: text }), // Send data if needed
-        headers: { // Set headers (optional)
-          "Content-Type": "application/json" // Specify JSON content type
-        }
-      })
-        .then(response => response.json())
-        .then(data => {
-          const answer = document.getElementById('answer');
-          answer.style.display = 'block';
-          const senti = document.getElementById('sentiment');
-          senti.style.display = 'block';
-          document.getElementById("sentiment").innerHTML = `This comment is ${data.answer}`;
-        })
-        .catch(error => console.error(error));
-    });
-  </script>
+    <footer class="footer mt-auto py-3 bg-dark text-white">
+        <div class="container text-center">
+            <span>Contact: contact@example.com</span><br>
+            <span>Follow us: <a href="#">Facebook</a>, <a href="#">Twitter</a></span>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
 </body>
-
 </html>

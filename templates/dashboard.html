@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom styles -->
+    <link href="{{url_for('static', filename='style.css')}}" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <a class="navbar-brand" href="#">Amazon Sentiment Analysis</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            {% if current_user.is_authenticated %}
+            <a class="navbar-brand" href="#">Welcome {{ current_user.username }}!</a>
+            {% endif %}
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="{{url_for('home')}}">Home <span class="sr-only">(current)</span></a>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{url_for('dashboard')}}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{url_for('logout')}}">Logout</a>
+                    </li>
+                    {% else%}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{url_for('login')}}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{url_for('signin')}}">Sign Up</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main" class="container">
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">Welcome, <span id="usernameDisplay">{{ current_user.username }}</span>!</div>
+                    <div class="card-body">
+                        <h5 class="card-title">Sentiment Analysis</h5>
+                        <form id="sentimentForm">
+                            <div class="form-group">
+                                <label for="reviewText">Enter Amazon Review:</label>
+                                <textarea class="form-control" id="reviewText" name="reviewText" rows="4"
+                                    required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Analyze Sentiment</button>
+                        </form>
+                        <div class="mt-3" id="result"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Custom JavaScript -->
+    <script src="scripts.js"></script>
+    <script>
+        // Function for logging out
+        function logout() {
+            // Perform logout actions here (clear session, redirect to login page, etc.)
+            alert("Logged out successfully!");
+            window.location.href = "login.html";
+        }
+
+        // Function for sentiment analysis form submission
+        document.getElementById("sentimentForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+            const reviewText = document.getElementById("reviewText").value;
+            // Here you can implement AJAX request or any other logic for sentiment analysis
+            // For demonstration, let's assume a simple random sentiment result
+            const sentiments = ["Positive", "Negative", "Neutral"];
+            const randomSentiment = sentiments[Math.floor(Math.random() * sentiments.length)];
+            if (randomSentiment == 'Positive') {
+                document.getElementById("result").innerHTML = `<div class="alert alert-success" role="alert">Sentiment: ${randomSentiment}</div>`;
+            } else if (randomSentiment == 'Negative') {
+                document.getElementById("result").innerHTML = `<div class="alert alert-info" role="alert">Sentiment: ${randomSentiment}</div>`;
+            } else {
+                document.getElementById("result").innerHTML = `<div class="alert alert-danger" role="alert">Sentiment: ${randomSentiment}</div>`;
+            }
+        });
+    </script>
+</body>
+
+</html>
