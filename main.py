@@ -1,10 +1,23 @@
 #!/usr/bin/env python3
 
+import pickle
 from flask import Flask, redirect, request, render_template, jsonify, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user
+from nltk.stem import PorterStemmer
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+import joblib
+import nltk
+import re
+import string
 
 app = Flask(__name__)
+with open('models/amazon_sentient.sav', 'rb') as file:
+   model = pickle.load(file)
+vect = joblib.load('models/sentiment_vectorizer.joblib', 'rb')
+nltk.download('punkt')
+nltk.download('stopwords')
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
 
@@ -26,6 +39,23 @@ with app.app_context():
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+def process_text(text):
+  stop_words = set(stopwords.words('english'))
+  def processing(data):
+    pattern = r"(?:^a-zA-Z0-9)|(?:https\S+|www\S+https\S+)|[@#]\W+"
+    text = re.sub(pattern, " ", data)
+    data = data.lower()
+    data_tok = word_tokenize(data.translate(str.maketrans('', '', string.punctuation)))
+    filter_text = [w for w in data_tok if not w in stop_words]
+    return " ".join(filter_text)
+  def stemming(data):
+    text = [PorterStemmer().stem(word) for word in data]
+    return data
+  text = stemming(processing(text))
+  text = vect.transform([text])
+  return text
+   
+
 @login_manager.user_loader
 def loader_user(user_id):
     return Users.query.get(user_id)
@@ -37,23 +67,26 @@ def home():
 @app.route("/predict", methods=["POST"])
 def predict():
   # Access data from request (if any)
-  name = request.json
-  print(name)
+  body = request.json
+  text = process_text(body.get('text'))
+  ans = model.predict(text)
+  return jsonify({'ans':ans[0]}), 200
+
 
   # Perform your logic here and generate the content
-  content = f"Hello, {name}! This is the updated content segment."
+  # content = f"Hello, {name}! This is the updated content segment."
   # The logic goes here
 
   # Return the generated content as a string
-  return jsonify({'answer':'True'})
+  # return jsonify({'answer':'True'})
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
   if request.method == 'POST':
-     user = Users.query.filter_by(username=request.form.get('username')).first()
-     if user.password == request.form.get('password'):
-        login_user(user)
-        return redirect(url_for('dashboard'))
+     if user := Users.query.filter_by(username=request.form.get('username')).first():
+      if user.password == request.form.get('password'):
+          login_user(user)
+          return redirect(url_for('dashboard'))
   return render_template('login.html')
 
 @app.route('/signin', methods=['GET', 'POST'])
@@ -80,6 +113,5 @@ def logout():
    logout_user()
    return redirect(url_for('home'))
 
-
 if __name__ == "__main__":
-  app.run(debug=False)
+  app.run(debug=True)

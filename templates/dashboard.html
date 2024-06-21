@@ -86,19 +86,30 @@
 
         // Function for sentiment analysis form submission
         document.getElementById("sentimentForm").addEventListener("submit", function (event) {
-            event.preventDefault();
-            const reviewText = document.getElementById("reviewText").value;
-            // Here you can implement AJAX request or any other logic for sentiment analysis
-            // For demonstration, let's assume a simple random sentiment result
-            const sentiments = ["Positive", "Negative", "Neutral"];
-            const randomSentiment = sentiments[Math.floor(Math.random() * sentiments.length)];
-            if (randomSentiment == 'Positive') {
-                document.getElementById("result").innerHTML = `<div class="alert alert-success" role="alert">Sentiment: ${randomSentiment}</div>`;
-            } else if (randomSentiment == 'Negative') {
-                document.getElementById("result").innerHTML = `<div class="alert alert-info" role="alert">Sentiment: ${randomSentiment}</div>`;
-            } else {
-                document.getElementById("result").innerHTML = `<div class="alert alert-danger" role="alert">Sentiment: ${randomSentiment}</div>`;
-            }
+            event.preventDefault()
+            fetch(`${location.origin}/predict`, {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    'text': document.querySelector('#reviewText').value
+                })
+            }).then(response => response.json()).then(data => {
+
+                event.preventDefault();
+                const reviewText = document.getElementById("reviewText").value;
+                // Here you can implement AJAX request or any other logic for sentiment analysis
+                // For demonstration, let's assume a simple random sentiment result
+                const randomSentiment = data.ans
+                if (randomSentiment == 'Positive') {
+                    document.getElementById("result").innerHTML = `<div class="alert alert-success" role="alert">Sentiment: ${randomSentiment}</div>`;
+                } else if (randomSentiment == 'Negative') {
+                    document.getElementById("result").innerHTML = `<div class="alert alert-danger" role="alert">Sentiment: ${randomSentiment}</div>`;
+                } else {
+                    document.getElementById("result").innerHTML = `<div class="alert alert-info" role="alert">Sentiment: ${randomSentiment}</div>`;
+                }
+            }).catch(error => console.log(error));
         });
     </script>
 </body>

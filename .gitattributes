@@ -1,0 +1,4 @@
+models/amazon_sentiment.sav filter=lfs diff=lfs merge=lfs -text
+sentiment_vectorizer.joblib filter=lfs diff=lfs merge=lfs -text
+models/sentiment_vectorizer.joblib filter=lfs diff=lfs merge=lfs -text
+models/amazon_sentient.sav filter=lfs diff=lfs merge=lfs -text
