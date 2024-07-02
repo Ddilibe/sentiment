@@ -41,3 +41,5 @@ tzdata==2024.1
 urllib3==2.2.1
 Werkzeug==3.0.3
 wordcloud==1.9.3
+torch==2.3.0
+python-dotenv==1.0.1

@@ -4,20 +4,23 @@ import pickle
 from flask import Flask, redirect, request, render_template, jsonify, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user
-from nltk.stem import PorterStemmer
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-import joblib
-import nltk
-import re
-import string
+from dotenv import load_dotenv
+import os
+# from nltk.stem import PorterStemmer
+# from nltk.corpus import stopwords
+# from nltk.tokenize import word_tokenize
+# import joblib
+# import nltk
+# import re
+# import string
+load_dotenv()
 
 app = Flask(__name__)
-with open('models/amazon_sentient.sav', 'rb') as file:
-   model = pickle.load(file)
-vect = joblib.load('models/sentiment_vectorizer.joblib', 'rb')
-nltk.download('punkt')
-nltk.download('stopwords')
+# with open('models/amazon_sentient.sav', 'rb') as file:
+#    model = pickle.load(file)
+# vect = joblib.load('models/sentiment_vectorizer.joblib', 'rb')
+# nltk.download('punkt')
+# nltk.download('stopwords')
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
 
@@ -39,21 +42,30 @@ with app.app_context():
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-def process_text(text):
-  stop_words = set(stopwords.words('english'))
-  def processing(data):
-    pattern = r"(?:^a-zA-Z0-9)|(?:https\S+|www\S+https\S+)|[@#]\W+"
-    text = re.sub(pattern, " ", data)
-    data = data.lower()
-    data_tok = word_tokenize(data.translate(str.maketrans('', '', string.punctuation)))
-    filter_text = [w for w in data_tok if not w in stop_words]
-    return " ".join(filter_text)
-  def stemming(data):
-    text = [PorterStemmer().stem(word) for word in data]
-    return data
-  text = stemming(processing(text))
-  text = vect.transform([text])
-  return text
+def process_answer(ans):
+   ans = sorted(ans[0], key=lambda x: x['score'])
+   if ans['label_0'] > 0.65:
+      return 'Negative'
+   elif ans['label_1'] > 0.65:
+      return 'Positive'
+   else:
+      return 'Netural'
+
+# def process_text(text):
+#   stop_words = set(stopwords.words('english'))
+#   def processing(data):
+#     pattern = r"(?:^a-zA-Z0-9)|(?:https\S+|www\S+https\S+)|[@#]\W+"
+#     text = re.sub(pattern, " ", data)
+#     data = data.lower()
+#     data_tok = word_tokenize(data.translate(str.maketrans('', '', string.punctuation)))
+#     filter_text = [w for w in data_tok if not w in stop_words]
+#     return " ".join(filter_text)
+#   def stemming(data):
+#     text = [PorterStemmer().stem(word) for word in data]
+#     return data
+#   text = stemming(processing(text))
+#   text = vect.transform([text])
+#   return text
    
 
 @login_manager.user_loader
@@ -66,11 +78,23 @@ def home():
 
 @app.route("/predict", methods=["POST"])
 def predict():
+  import requests
   # Access data from request (if any)
   body = request.json
-  text = process_text(body.get('text'))
-  ans = model.predict(text)
-  return jsonify({'ans':ans[0]}), 200
+  text = body.get('text')
+  # ans = model.predict(text)
+
+  API_URL = "https://api-inference.huggingface.co/models/ashok2216/gpt2-amazon-sentiment-classifier-V1.0"
+  headers = {"Authorization": f"Bearer {os.environ['huggingface']}"}
+
+  def query(payload):
+    response = requests.post(API_URL, headers=headers, json=payload)
+    return response.json()
+    
+  output = query({
+    "inputs": text,
+  })
+  return jsonify({'ans':process_answer(output)}), 200
 
 
   # Perform your logic here and generate the content
